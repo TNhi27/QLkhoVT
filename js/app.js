@@ -328,8 +328,9 @@ const tim = () => {
            <td>${doc.data().DonVi}</td>
            <td>${doc.data().NhaCC}</td>
            <td>
-            <button class="btn-del" onclick="edit('${doc.id}')">Edit</button> ||
-            <button class="btn-del" onclick="del('${doc.id}')">Delete</button>
+             <button class="btn-del" onclick="edit('${doc.id}')">Chỉnh sửa</button> ||           
+            <button class="btn-del" data-toggle="modal" data-target="#modalXuat"   onclick="render('${doc.id}')">Xuất</button> ||
+            <button class="btn-del" onclick="del('${doc.id}')">Xóa</button>
            </td>  
          </tr>`;
         })
