@@ -31,14 +31,98 @@ const getall = () => {
            <td>${doc.data().DonVi}</td>
            <td>${doc.data().NhaCC}</td>
            <td>
-            <button class="btn-del" onclick="edit('${doc.id}')">Edit</button> ||
-            <button class="btn-del" onclick="del('${doc.id}')">Delete</button>
+            <button class="btn-del" onclick="edit('${doc.id}')">Chỉnh sửa</button> ||           
+            <button class="btn-del" data-toggle="modal" data-target="#modalXuat"   onclick="render('${doc.id}')">Xuất</button> ||
+            <button class="btn-del" onclick="del('${doc.id}')">Xóa</button>
            </td>  
          </tr>`;
         });
         document.getElementById("tbnVatTu").innerHTML = conten;
     });
 
+
+}
+
+
+const render = (id) => {
+    document.getElementById("id-vattu").value = id;
+}
+const addDonXuat = () => {
+
+    let MaDX = document.getElementById("MaDX");
+    let sl = document.getElementById("slXuat").value;
+    let id = document.getElementById("id-vattu").value;
+
+    db.collection("VatTu").doc(id).get().then((doc) => {
+
+        let tenvt = "";
+        if (MaDX.value.length > 0) {
+            db.collection("VatTu").doc(id).get().then((doc) => {
+                renderTable(MaDX.value);
+                db.collection("Xuat").doc(MaDX.value).collection("dsVatTuXuat").doc(id).set({
+                    MaVT: id,
+                    TenVT: doc.data().TenVT,
+                    Mau: doc.data().Mau,
+                    SoLuong: sl
+                })
+            })
+
+        } else {
+            alert("Chua co Don Xuat duoc tao")
+        }
+    })
+
+
+
+
+}
+const renderTable = (MaDX) => {
+    let nd = "";
+    let stt = 0;
+    db.collection("Xuat").doc(MaDX).collection("dsVatTuXuat")
+        .get()
+        .then((snap) => {
+            snap.forEach((doc) => {
+                stt++
+
+                nd += `<tr>
+            <td>${stt}</td>
+            <td>${doc.data().MaVT}</td>
+            <td>${doc.data().Mau}</td>
+            <td>${doc.data().SoLuong}</td>
+          </tr>`;
+
+
+            })
+
+            db.collection("Xuat").doc(MaDX).get().then((doc) => {
+                document.getElementById("NgayXuat").value = new Date(doc.data().NgayXuat);
+                document.getElementById("MaDX").value = MaDX;
+                document.getElementById("NguoiNhan").value = doc.data().NguoiNhan;
+                document.getElementById("title-tbnDonXuat").innerHTML = `Đơn Hàng Xuất : ${MaDX}`
+                $('#myTab a[href="#xuatkho"]').tab('show')
+            })
+            document.getElementById("tbn-dsVatTuXuat").innerHTML = nd;
+        })
+
+
+}
+
+const taoDonXuat = () => {
+    let MaDX = document.getElementById("MaDX");
+    let NgayXuat = document.getElementById("NgayXuat");
+
+    if (MaDX.value.length > 0 && NgayXuat.value.length > 0) {
+        db.collection("Xuat").doc(MaDX.value).set({
+            NgayXuat: new Date(NgayXuat.value).getTime(),
+            NguoiNhan: document.getElementById("NguoiNhan").value
+        }).then(() => {
+            document.getElementById("title-tbnDonXuat").innerHTML = `DON HANG XUAT :${MaDX.value}`
+            alert("Tao Thanh Cong !")
+        })
+    } else {
+        alert("Vui long nhap day du")
+    }
 
 
 }
@@ -48,6 +132,7 @@ const edit = (id) => {
 
     const TenVT = document.getElementById("TenVT");
     const Mau = document.getElementById("Mau");
+    const MaVT = document.getElementById("MaVT");
     const SoLuong = document.getElementById("SoLuong");
     const DonVi = document.getElementById("DonVi");
     const NhaCC = document.getElementById("NhaCC");
@@ -56,6 +141,7 @@ const edit = (id) => {
         .onSnapshot((doc) => {
 
             TenVT.value = doc.data().TenVT;
+            MaVT.value = doc.id;
             Mau.value = doc.data().Mau;
             SoLuong.value = doc.data().SoLuong;
             DonVi.value = doc.data().DonVi;
@@ -67,11 +153,13 @@ const edit = (id) => {
 }
 
 const del = (id) => {
-
-    db.collection("VatTu").doc(id).delete().then(() => {
-        alert("Xóa Thành Công")
-        location.reload();
-    })
+    let ck = confirm("Bạn có chắt muốn xóa !");
+    if (ck) {
+        db.collection("VatTu").doc(id).delete().then(() => {
+            alert("Xóa Thành Công")
+            location.reload();
+        })
+    }
 
 }
 
@@ -79,9 +167,10 @@ const themVT = () => {
 
 
     const MaDH = document.getElementById("MaHD");
+    const MaVT = document.getElementById("MaVT");
     const TenVT = document.getElementById("TenVT");
     const Mau = document.getElementById("Mau");
-    const SoLuong = document.getElementById("SoLuong");
+    const SoLuong = document.getElementById("slNhap");
     const DonVi = document.getElementById("DonVi");
     const NhaCC = document.getElementById("NhaCC");
     const GhiChu = document.getElementById("GhiChu");
@@ -94,14 +183,14 @@ const themVT = () => {
         db.collection("VatTu").get().then((snap) => {
             let kt = true;
             snap.forEach((doc) => {
-                if (doc.id == TenVT.value) {
+                if (doc.id == MaVT.value) {
                     db.collection("VatTu").doc(doc.id).update({
                         SoLuong: Number(doc.data().SoLuong) + Number(SoLuong.value)
                     })
                     kt = false;
                 }
                 if (kt) {
-                    db.collection("VatTu").doc(TenVT.value).set({
+                    db.collection("VatTu").doc(MaVT.value).set({
                         TenVT: TenVT.value,
                         Mau: Mau.value,
                         SoLuong: SoLuong.value,
@@ -135,6 +224,8 @@ const themVT = () => {
             }
         })
 
+
+
     } else {
         alert("Vui lòng Điển đầy đủ")
     }
@@ -149,6 +240,7 @@ const Xuat = () => {
     const NhaCC = document.getElementById("NhaCC");
     const GhiChu = document.getElementById("GhiChu");
     const NgayTao = document.getElementById("NgayTao");
+    const NguoiNhan = document.getElementById("NguoiNhan");
 
 
 
@@ -169,6 +261,7 @@ const Xuat = () => {
                             if (doc.id == MaDH.value) {
                                 db.collection("Xuat").doc(doc.id).collection("dsVatTuXuat").add({
                                     TenVT: TenVT.value,
+                                    Mau: Mau.value,
                                     SoLuong: SoLuong.value
                                 })
                                 kt = false;
@@ -176,7 +269,8 @@ const Xuat = () => {
                         })
                         if (kt) {
                             db.collection("Xuat").doc(MaDH.value).set({
-                                NgayXuat: new Date(NgayTao.value).getTime()
+                                NgayXuat: new Date(NgayTao.value).getTime(),
+                                NguoiNhan: NguoiNhan.value
                             })
                             db.collection("Xuat").doc(MaDH.value).collection("dsVatTuXuat").add({
                                 TenVT: TenVT.value,
@@ -216,14 +310,14 @@ const tim = () => {
                 listNhap.forEach((nhap) => {
                     sumNhap = sumNhap + Number(nhap.data().slNhap);
                 })
-                console.log(sumNhap)
+                
             })
             //lay sl xuat
             db.collection("Xuat").where("MaVT", "==", doc.id).get().then((listXuat) => {
                 listXuat.forEach((xuat) => {
                     sumXuat = sumXuat + Number(xuat.data().slXuat);
                 })
-                console.log(sumXuat)
+                
             })
 
             conten = conten + ` <tr data-id='${doc.id}'>
@@ -259,6 +353,9 @@ const capNhatVT = () => {
         DonVi: DonVi.value,
         NhaCC: NhaCC.value,
         GhiChu: GhiChu.value
+    }).then(() => {
+        alert("Cập nhật thành công")
+        location.reload()
     })
 }
 
@@ -271,12 +368,13 @@ const show = () => {
     let conten = "";
     let conten1 = "";
     let index = 1;
+    let index1 = 1;
 
-    let sum1 =0;
-    let sum2 =0;
+    let sum1 = 0;
+    let sum2 = 0;
 
     let list2 = [];
-   
+
     db.collection("DonHang").where("NgayTao", ">=", ngay1)
         .where("NgayTao", "<=", ngay2)
         .get().then((snap) => {
@@ -294,7 +392,7 @@ const show = () => {
               </tr>`;
             })
 
-            
+
             document.getElementById("slN").innerHTML = `<h1>${sum1}</h1>`;
             document.getElementById("tbnDonHang").innerHTML = conten;
         })
@@ -305,23 +403,163 @@ const show = () => {
             snap.forEach((doc) => {
                 sum2++;
                 let d = new Date(doc.data().NgayXuat);
-                console.log(doc.id)
+                
                 conten1 = conten1 + ` <tr data-id='${doc.id}'>
-                <td>${index++}</td>
+                <td>${index1++}</td>
                 <td>${doc.id}</td>
                 <td>${d.getDate()}/${d.getMonth()}/${d.getFullYear()}</td>
                 <td>
                  <button class="btn-del" data-toggle="modal" data-target="#modalChiTiet" onclick="chitietXuat('${doc.id}')">Chi tiet</button>
-                </td>  
+                || <button class="btn-del"  onclick="renderTable('${doc.id}')">Excel</button>
+                 </td>  
               </tr>`;
             })
 
             document.getElementById("slX").innerHTML = sum2;
             document.getElementById("tbnDonXuat").innerHTML = conten1;
         })
-        
-       
-          
+}
+
+const addWithExcel = () => {
+    readXlsxFile(input.files[0]).then((data) => {
+        let i = 0;
+        data.map((row, index) => {
+            const MaDH = row[0];
+            const MaVT = row[1];
+            const TenVT = row[2];
+            const Mau = row[3];
+            const SoLuong = row[4];
+            const DonVi = row[5];
+            const NhaCC = row[6];
+            const GhiChu = row[7];
+            const NgayTao = new Date();
+
+
+            db.collection("VatTu").get().then((snap) => {
+                let kt = true;
+                snap.forEach((doc) => {
+                    if (doc.id == MaVT) {
+                        db.collection("VatTu").doc(doc.id).update({
+                            SoLuong: Number(doc.data().SoLuong) + Number(SoLuong)
+                        })
+                        kt = false;
+                    }
+                    if (kt) {
+                        db.collection("VatTu").doc(MaVT).set({
+                            TenVT: TenVT,
+                            Mau: Mau,
+                            SoLuong: SoLuong,
+                            DonVi: DonVi,
+                            NhaCC: NhaCC,
+                            GhiChu: GhiChu
+                        })
+                    }
+                })
+            });
+
+            db.collection("DonHang").get().then((snap) => {
+                let kt = true;
+                snap.forEach((doc) => {
+                    if (doc.id == MaDH) {
+                        db.collection("DonHang").doc(doc.id).collection("dsVatTuNhap").doc(MaVT).set({
+                            TenVT: TenVT,
+                            Mau: Mau,
+                            SoLuong: SoLuong
+                        })
+                        kt = false;
+                    }
+                })
+                if (kt) {
+                    db.collection("DonHang").doc(MaDH).set({
+                        NgayTao: new Date().getTime()
+                    })
+                    db.collection("DonHang").doc(MaDH).collection("dsVatTuNhap").doc(MaVT).set({
+                        TenVT: TenVT,
+                        Mau: Mau,
+                        SoLuong: SoLuong
+                    })
+                }
+            })
+
+        })
+      
+        alert("Thêm Thành Công")
+
+    })
+}
+
+
+const excel = () => {
+    let dx = document.getElementById("MaDX").value;
+    let fileName = dx + new Date();
+    let ws_data = [
+        ["Đơn vị / Company: Chi Nhánh Công ty TNHH MTV VỸ THỊNH"],
+        ["Địa chỉ / Address: 15/40/3 đường Cầu Xéo, phường Tân Quý, quận Tân Phú"],
+        ["PHIẾU XUẤT KHO"],
+        ["Ngày Tạo :", new Date().toString()],
+        ["MÃ ĐƠN XUẤT : ", dx],
+        ["Người Nhận : ", document.getElementById("NguoiNhan").value],
+        ["Xuất tại kho (ngăn lô) / Delivery at : Chi Nhánh  CTY TNHH MTV VỸ THỊNH...............Cầu Xéo - Tân Quý - Tân Phú..............................."],
+        [""],
+        ["STT", "Tên Vật Tư", "Màu", "Số Lượng"]
+    ];
+    db.collection("Xuat").doc(dx).collection("dsVatTuXuat").get().then((snap1) => {
+        snap1.forEach((d) => {
+            let slMoi = d.data().SoLuong;
+            db.collection("VatTu").doc(d.id).get().then((doc) => {
+                db.collection("VatTu").doc(d.id).update({
+                    SoLuong: Number(doc.data().SoLuong) - Number(slMoi)
+                }).then(() => {
+                    location.reload()
+                })
+            })
+
+        })
+
+        let stt = 0;
+        db.collection("Xuat").doc(dx).collection("dsVatTuXuat").get().then((snap2) => {
+            snap2.forEach((doc) => {
+                stt++;
+                ws_data.push([stt, doc.data().TenVT, doc.data().Mau, doc.data().SoLuong])
+            })
+            ws_data.push(
+                [], [],
+                ["", "Người Lập Phiếu", "", "", "Người Nhận", "", "Trưởng Bộ Phận"])
+        }).then(() => {
+            let wb = XLSX.utils.book_new();
+            wb.Props = {
+                Title: fileName,
+                Subject: fileName,
+                Author: "Red Stapler",
+                CreatedDate: new Date()
+            };
+
+            wb.SheetNames.push("Test Sheet");
+
+
+            let ws = XLSX.utils.aoa_to_sheet(ws_data);
+            wb.Sheets["Test Sheet"] = ws;
+            let wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+            function s2ab(s) {
+
+                let buf = new ArrayBuffer(s.length);
+                let view = new Uint8Array(buf);
+                for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+                return buf;
+
+            }
+
+            saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), fileName + '.xlsx');
+        })
+
+
+
+        alert("Xuat Thanh Cong Don Hang")
+    })
+
+
+
+
 }
 
 const chitiet = id => {
@@ -343,7 +581,7 @@ const chitiet = id => {
         document.getElementById("tbnChitiet").innerHTML = tbnCt;
     })
 }
-const chitietXuat =id=>{
+const chitietXuat = id => {
     let tbnCt = "";
     db.collection("Xuat").doc(id).collection("dsVatTuXuat").get().then((snap) => {
         snap.forEach((i) => {
@@ -358,4 +596,15 @@ const chitietXuat =id=>{
     })
 }
 
+const lamMoi = () => {
+    const MaDH = document.getElementById("MaHD");
+    document.getElementById("MaVT").value = "";
+    document.getElementById("TenVT").value="";
+    document.getElementById("Mau").value="";
+    document.getElementById("slNhap").value="";
+    document.getElementById("DonVi").value="";
+    document.getElementById("NhaCC").value="";
+    document.getElementById("GhiChu").value="";
+    document.getElementById("NgayTao").value="";
+}
 
