@@ -510,8 +510,6 @@ const excel = () => {
             db.collection("VatTu").doc(d.id).get().then((doc) => {
                 db.collection("VatTu").doc(d.id).update({
                     SoLuong: Number(doc.data().SoLuong) - Number(slMoi)
-                }).then(() => {
-                    location.reload()
                 })
             })
 
