@@ -451,11 +451,11 @@ const addWithExcel = () => {
                     }
                     if (kt) {
                         db.collection("VatTu").doc(MaVT).set({
-                            TenVT: TenVT,
-                            Mau: Mau,
-                            SoLuong: SoLuong,
-                            DonVi: DonVi,
-                            NhaCC: NhaCC,
+                            TenVT: TenVT.length<=0?TenVT:"Null",
+                            Mau: Mau.length<=0?Mau:"Null",
+                            SoLuong: SoLuong.length<=0?SoLuong:"Null",
+                            DonVi: DonVi.length<=0?DonVi:"Null",
+                            NhaCC: NhaCC.length<=0?NhaCC:"Null",
                             GhiChu: GhiChu.length<=0?GhiChu:"Null"
                         })
                     }
