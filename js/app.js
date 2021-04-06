@@ -225,7 +225,7 @@ const themVT = () => {
         })
 
 
-
+        alert("Nhap Thanh Cong")
     } else {
         alert("Vui lòng Điển đầy đủ")
     }
@@ -321,7 +321,7 @@ const tim = () => {
             })
 
             conten = conten + ` <tr data-id='${doc.id}'>
-           <th >${doc.id}</th>
+           
            <td>${doc.data().TenVT}</td>
            <td>${doc.data().Mau}</td>
            <td>${doc.data().SoLuong}</td>
@@ -342,13 +342,14 @@ const tim = () => {
 const capNhatVT = () => {
 
     const TenVT = document.getElementById("TenVT");
+    const MaVT = document.getElementById("MaVT");
     const Mau = document.getElementById("Mau");
     const SoLuong = document.getElementById("SoLuong");
     const DonVi = document.getElementById("DonVi");
     const NhaCC = document.getElementById("NhaCC");
     const GhiChu = document.getElementById("GhiChu");
 
-    db.collection("VatTu").doc(TenVT.value).update({
+    db.collection("VatTu").doc(MaVT.value).update({
         TenVT: TenVT.value,
         Mau: Mau.value,
         DonVi: DonVi.value,
@@ -426,14 +427,17 @@ const addWithExcel = () => {
         let i = 0;
         data.map((row, index) => {
             const MaDH = row[0];
-            const MaVT = row[1];
-            const TenVT = row[2];
-            const Mau = row[3];
-            const SoLuong = row[4];
-            const DonVi = row[5];
-            const NhaCC = row[6];
-            const GhiChu = row[7];
+            const Mau = row[2];
+            
+            const TenVT = row[1];
+            const MaVT = TenVT+Mau;
+            const SoLuong = row[3];
+            const DonVi = row[4];
+            const NhaCC = row[5];
+            const GhiChu = row[6];
             const NgayTao = new Date();
+
+            
 
 
             db.collection("VatTu").get().then((snap) => {
@@ -452,7 +456,7 @@ const addWithExcel = () => {
                             SoLuong: SoLuong,
                             DonVi: DonVi,
                             NhaCC: NhaCC,
-                            GhiChu: GhiChu
+                            GhiChu: GhiChu.length<=0?GhiChu:"Null"
                         })
                     }
                 })
