@@ -21,10 +21,12 @@ const db = firebase.firestore();
 const getall = () => {
 
     let conten = '';
+    let i = 1;
     db.collection("VatTu").get().then((querySnapshot) => {
+
         querySnapshot.forEach((doc) => {
             conten = conten + ` <tr data-id='${doc.id}'>
-           
+            <td>${i++}</td>
            <td>${doc.data().TenVT}</td>
            <td>${doc.data().Mau}</td>
            <td>${doc.data().SoLuong}</td>
@@ -301,6 +303,7 @@ const tim = () => {
     const den = $("#denNgay").val();
     let conten = '';
     let key = $("#tim").val();
+    let i=1;
     db.collection("VatTu").orderBy("TenVT").startAt(key).endAt(key + "\uf8ff").get().then((snap) => {
         snap.forEach((doc) => {
             let sumNhap = 0;
@@ -310,18 +313,18 @@ const tim = () => {
                 listNhap.forEach((nhap) => {
                     sumNhap = sumNhap + Number(nhap.data().slNhap);
                 })
-                
+
             })
-            //lay sl xuat
+           
             db.collection("Xuat").where("MaVT", "==", doc.id).get().then((listXuat) => {
                 listXuat.forEach((xuat) => {
                     sumXuat = sumXuat + Number(xuat.data().slXuat);
                 })
-                
+
             })
 
             conten = conten + ` <tr data-id='${doc.id}'>
-           
+            <td>${i++}</td>
            <td>${doc.data().TenVT}</td>
            <td>${doc.data().Mau}</td>
            <td>${doc.data().SoLuong}</td>
@@ -405,7 +408,7 @@ const show = () => {
             snap.forEach((doc) => {
                 sum2++;
                 let d = new Date(doc.data().NgayXuat);
-                
+
                 conten1 = conten1 + ` <tr data-id='${doc.id}'>
                 <td>${index1++}</td>
                 <td>${doc.id}</td>
@@ -426,18 +429,9 @@ const addWithExcel = () => {
     readXlsxFile(input.files[0]).then((data) => {
         let i = 0;
         data.map((row, index) => {
-            const MaDH = row[0];
-            const Mau = row[2];
-            
-            const TenVT = row[1];
-            const MaVT = TenVT+Mau;
-            const SoLuong = row[3];
-            const DonVi = row[4];
-            const NhaCC = row[5];
-            const GhiChu = row[6];
-            const NgayTao = new Date();
 
-            
+
+
 
 
             db.collection("VatTu").get().then((snap) => {
@@ -450,44 +444,65 @@ const addWithExcel = () => {
                         kt = false;
                     }
                     if (kt) {
+                        const MaDH = row[0];
+                        const Mau = row[2];
+
+                        const TenVT = row[1];
+                        const MaVT = TenVT + Mau;
+                        const SoLuong = row[3];
+                        const DonVi = row[4];
+                        const NhaCC = row[5];
+                        const GhiChu = row[6];
+                        const NgayTao = new Date();
                         db.collection("VatTu").doc(MaVT).set({
-                            TenVT: TenVT.length<=0?TenVT:"Null",
-                            Mau: Mau.length<=0?Mau:"Null",
-                            SoLuong: SoLuong.length<=0?SoLuong:"Null",
-                            DonVi: DonVi.length<=0?DonVi:"Null",
-                            NhaCC: NhaCC.length<=0?NhaCC:"Null",
-                            GhiChu: GhiChu.length<=0?GhiChu:"Null"
+                            TenVT: TenVT,
+                            Mau: Mau,
+                            SoLuong: SoLuong,
+                            DonVi: DonVi,
+                            NhaCC: NhaCC,
+                            GhiChu: GhiChu.length <= 0 ? GhiChu : "Null"
                         })
                     }
                 })
             });
 
-            db.collection("DonHang").get().then((snap) => {
-                let kt = true;
-                snap.forEach((doc) => {
-                    if (doc.id == MaDH) {
-                        db.collection("DonHang").doc(doc.id).collection("dsVatTuNhap").doc(MaVT).set({
-                            TenVT: TenVT,
-                            Mau: Mau,
-                            SoLuong: SoLuong
-                        })
-                        kt = false;
-                    }
+            db.collection("DonHang").doc(row[0]).set({
+                NgayTao: new Date().getTime()
+            }
+            ).then(() => {
+                db.collection("DonHang").doc(row[0]).collection("dsVatTuNhap").add({
+                    TenVT: row[1],
+                    Mau: row[2],
+                    SoLuong: row[3]
                 })
-                if (kt) {
-                    db.collection("DonHang").doc(MaDH).set({
-                        NgayTao: new Date().getTime()
-                    })
-                    db.collection("DonHang").doc(MaDH).collection("dsVatTuNhap").doc(MaVT).set({
-                        TenVT: TenVT,
-                        Mau: Mau,
-                        SoLuong: SoLuong
-                    })
-                }
             })
 
+            // db.collection("DonHang").get().then((snap) => {
+            //     let kt = true;
+            //     snap.forEach((doc) => {
+            //         if (doc.id == MaDH) {
+            //             db.collection("DonHang").doc(doc.id).collection("dsVatTuNhap").doc(MaVT).set({
+            //                 TenVT: TenVT,
+            //                 Mau: Mau,
+            //                 SoLuong: SoLuong
+            //             })
+            //             kt = false;
+            //         }
+            //     })
+            //     if (kt) {
+            //         db.collection("DonHang").doc(MaDH).set({
+            //             NgayTao: new Date().getTime()
+            //         })
+            //         db.collection("DonHang").doc(MaDH).collection("dsVatTuNhap").doc(MaVT).set({
+            //             TenVT: TenVT,
+            //             Mau: Mau,
+            //             SoLuong: SoLuong
+            //         })
+            //     }
+            // })
+
         })
-      
+
         alert("Thêm Thành Công")
 
     })
@@ -602,12 +617,12 @@ const chitietXuat = id => {
 const lamMoi = () => {
     const MaDH = document.getElementById("MaHD");
     document.getElementById("MaVT").value = "";
-    document.getElementById("TenVT").value="";
-    document.getElementById("Mau").value="";
-    document.getElementById("slNhap").value="";
-    document.getElementById("DonVi").value="";
-    document.getElementById("NhaCC").value="";
-    document.getElementById("GhiChu").value="";
-    document.getElementById("NgayTao").value="";
+    document.getElementById("TenVT").value = "";
+    document.getElementById("Mau").value = "";
+    document.getElementById("slNhap").value = "";
+    document.getElementById("DonVi").value = "";
+    document.getElementById("NhaCC").value = "";
+    document.getElementById("GhiChu").value = "";
+    document.getElementById("NgayTao").value = "";
 }
 
