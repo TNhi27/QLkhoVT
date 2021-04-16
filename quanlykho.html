@@ -68,10 +68,38 @@
 
       <li class="nav-item" role="presentation">
         <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact"
-          aria-selected="false">Thống Kê</a>
+          aria-selected="false">Thống Kê Số Đơn</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a onclick="renderTableTk()" class="nav-link" id="contact-tab" data-toggle="tab" href="#thongke" role="tab" aria-controls="contact"
+          aria-selected="false">Thống Kê Chi Tiết</a>
       </li>
     </ul>
-    <div class="tab-content" id="myTabContent">
+    <div class="tab-content" id="myTabContent" >
+      <div class="tab-pane fade " id="thongke" role="tabpanel" aria-labelledby="tk-tab">
+        <nav class="navbar navbar-light bg-light">
+          <div class="form-inline">
+            <input onkeyup="timInTK()" onchange="timInTK()" id="timInTK" class="form-control mr-sm-2" type="search"
+              placeholder="Search by Name" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" onclick="timInTK()">Search</button>
+
+          </div>
+        </nav>
+        <table class="table" >
+          <thead>
+              <tr>
+                  <th>TÊN VẬT TƯ</th>
+                  <th>MÀU</th>
+                  <th>TỔNG NHẬP</th>
+                  <th>TỔNG XUẤT</th>
+                  
+              </tr>
+          </thead>
+          <tbody id="bangTK">
+             
+          </tbody>
+      </table>
+      </div>
       <!--Tab Danh sách hàng hóa-->
       <div class="tab-pane fade " id="home" role="tabpanel" aria-labelledby="home-tab">
         <nav class="navbar navbar-light bg-light">

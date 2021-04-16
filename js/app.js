@@ -10,6 +10,15 @@ const firebaseConfig = {
     appId: "1:715891396024:web:6bf1cb9a056670972d134d",
     measurementId: "G-08JYQHMMF3"
 };
+// const firebaseConfig = {
+//     apiKey: "AIzaSyCOMOpZEOhI0MGGKD6XxEzbWXPaCXGHwOI",
+//     authDomain: "vythinh-7893a.firebaseapp.com",
+//     projectId: "vythinh-7893a",
+//     storageBucket: "vythinh-7893a.appspot.com",
+//     messagingSenderId: "41281170735",
+//     appId: "1:41281170735:web:dbe9cb04058fd17cd745da",
+//     measurementId: "G-XMPDVRFZW7"
+// };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -303,7 +312,7 @@ const tim = () => {
     const den = $("#denNgay").val();
     let conten = '';
     let key = $("#tim").val();
-    let i=1;
+    let i = 1;
     db.collection("VatTu").orderBy("TenVT").startAt(key).endAt(key + "\uf8ff").get().then((snap) => {
         snap.forEach((doc) => {
             let sumNhap = 0;
@@ -315,7 +324,7 @@ const tim = () => {
                 })
 
             })
-           
+
             db.collection("Xuat").where("MaVT", "==", doc.id).get().then((listXuat) => {
                 listXuat.forEach((xuat) => {
                     sumXuat = sumXuat + Number(xuat.data().slXuat);
@@ -338,6 +347,27 @@ const tim = () => {
          </tr>`;
         })
         document.getElementById("tbnVatTu").innerHTML = conten;
+    })
+
+}
+const timInTK = () => {
+
+    let nd1 = "";
+    let key = $("#timInTK").val();
+    let i = 1;
+    db.collection("ThongKe").orderBy("TenVT").startAt(key).endAt(key + "\uf8ff").get().then((snap) => {
+        snap.forEach((doc) => {
+
+
+            let xuat = Number(doc.data().TongNhap) - Number(doc.data().TongXuat)
+            nd1 = nd1 + ` <tr>
+               <td>${doc.data().TenVT}</td>
+               <td>${doc.data().Mau}</td>
+               <td>${doc.data().TongNhap}</td>
+               <td>${doc.data().TongXuat}</td>`;
+
+        })
+        document.getElementById("bangTK").innerHTML = nd1;
     })
 
 }
@@ -437,10 +467,19 @@ const addWithExcel = () => {
             db.collection("VatTu").get().then((snap) => {
                 let kt = true;
                 snap.forEach((doc) => {
-                    if (doc.id == MaVT) {
+                    if (doc.id == row[1] + row[2]) {
                         db.collection("VatTu").doc(doc.id).update({
-                            SoLuong: Number(doc.data().SoLuong) + Number(SoLuong)
+                            SoLuong: Number(doc.data().SoLuong) + Number(row[3])
                         })
+                        let sl = 0;
+                        db.collection("ThongKe").doc(doc.id).get().then((doc1) => {
+                            sl = doc1.data().TongNhap + row[3];
+                            db.collection("ThongKe").doc(doc.id).update({
+                                TongNhap: Number(sl)
+                            })
+                        })
+
+
                         kt = false;
                     }
                     if (kt) {
@@ -462,6 +501,12 @@ const addWithExcel = () => {
                             NhaCC: NhaCC,
                             GhiChu: GhiChu.length <= 0 ? GhiChu : "Null"
                         })
+                        db.collection("ThongKe").doc(MaVT).set({
+                            TongNhap: Number(row[3]),
+                            TongXuat: 0,
+                            TenVT: row[1],
+                            Mau: row[2]
+                        })
                     }
                 })
             });
@@ -470,38 +515,18 @@ const addWithExcel = () => {
                 NgayTao: new Date().getTime()
             }
             ).then(() => {
-                db.collection("DonHang").doc(row[0]).collection("dsVatTuNhap").add({
+                db.collection("DonHang").doc(row[0]).collection("dsVatTuNhap").doc(row[1] + row[2]).set({
                     TenVT: row[1],
                     Mau: row[2],
                     SoLuong: row[3]
                 })
             })
 
-            // db.collection("DonHang").get().then((snap) => {
-            //     let kt = true;
-            //     snap.forEach((doc) => {
-            //         if (doc.id == MaDH) {
-            //             db.collection("DonHang").doc(doc.id).collection("dsVatTuNhap").doc(MaVT).set({
-            //                 TenVT: TenVT,
-            //                 Mau: Mau,
-            //                 SoLuong: SoLuong
-            //             })
-            //             kt = false;
-            //         }
-            //     })
-            //     if (kt) {
-            //         db.collection("DonHang").doc(MaDH).set({
-            //             NgayTao: new Date().getTime()
-            //         })
-            //         db.collection("DonHang").doc(MaDH).collection("dsVatTuNhap").doc(MaVT).set({
-            //             TenVT: TenVT,
-            //             Mau: Mau,
-            //             SoLuong: SoLuong
-            //         })
-            //     }
-            // })
+
+
 
         })
+
 
         alert("Thêm Thành Công")
 
@@ -530,7 +555,16 @@ const excel = () => {
                 db.collection("VatTu").doc(d.id).update({
                     SoLuong: Number(doc.data().SoLuong) - Number(slMoi)
                 })
+            }).then(() => {
+                let sl = 0;
+                db.collection("ThongKe").doc(d.id).get().then((doc1) => {
+                    sl = doc1.data().TongXuat + slMoi;
+                    db.collection("ThongKe").doc(d.id).update({
+                        TongXuat: Number(sl)
+                    })
+                })
             })
+
 
         })
 
@@ -626,3 +660,23 @@ const lamMoi = () => {
     document.getElementById("NgayTao").value = "";
 }
 
+
+const renderTableTk = () => {
+
+    let nd1 = "";
+    db.collection("ThongKe").get().then((snap) => {
+        snap.forEach((doc) => {
+            
+            nd1 = nd1 + ` <tr>
+           <td>${doc.data().TenVT}</td>
+           <td>${doc.data().Mau}</td>
+           <td>${doc.data().TongNhap}</td>
+           <td>${doc.data().TongXuat}</td>`;
+          
+        })
+    }).then(() => {
+        document.getElementById("bangTK").innerHTML = nd1;
+    })
+
+
+}
